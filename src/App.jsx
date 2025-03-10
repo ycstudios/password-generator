@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 
 function App() {
@@ -6,6 +6,8 @@ function App() {
   const [numberAllowed, setNumber] = useState(false);
   const [charAllowed, setAllowed] = useState(false);
   const [password, setPassword] = useState('');
+
+  const passwordRef=useRef(null)
 
   const passwordGenerator = useCallback(() => {
     let pass = '';
@@ -18,16 +20,26 @@ function App() {
     if (charAllowed) {
       str += "!@#$%&*";
     }
-
-    for(let i=1;i<=length;i++){
-      let char=Math.floor(Math.random()*str.length+1)
-      pass =str.charAt(char)
-    }
+for(let i=1;i<=length;i++){
+  let char=Math.floor(Math.random()*str.length)
+  pass += str.charAt(char)
+}
 
     setPassword(pass)
-
+console.log(pass)
 
   }, [length, numberAllowed, charAllowed, setPassword]);
+
+  const copyPassword = useCallback(() => {
+    passwordRef.current?.select()
+    window.navigator.clipboard.writeText(password);
+  }, [password]);
+
+  useEffect(()=>{
+
+    passwordGenerator()
+
+  }, [length, numberAllowed, charAllowed, passwordGenerator])
 
   return (
 
@@ -41,8 +53,11 @@ function App() {
       className="outline-none w-full py-3 px-4 bg-gray-700 text-white"
       placeholder="Password"
       readOnly
+      ref={passwordRef}
     />
-    <button className='outline-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 transition-colors duration-200 font-medium'>
+    <button className='outline-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 transition-colors duration-200 font-medium'
+    onClick={copyPassword}
+    >
       copy
     </button>
   </div>
@@ -55,7 +70,7 @@ function App() {
         max={100}
         value={length}
         className='cursor-pointer w-32 accent-blue-600'
-        onChange={(e) => {setLength(e.target.value)}}
+        onChange={(e) => {setLength(parseInt(e.target.value))}}
       />
       <label className="text-white">Length: {length}</label>
     </div>
@@ -63,9 +78,11 @@ function App() {
     <div className="flex items-center gap-x-2">
       <input
         type="checkbox"
-        defaultChecked={numberAllowed}
+        checked={numberAllowed}
+
         id="numberInput"
         className="w-4 h-4 accent-blue-600 rounded"
+        onChange={()=>{setNumber((prev)=>!prev)}}
       />
       <label htmlFor="numberInput" className="text-white">Numbers</label>
     </div>
@@ -73,9 +90,10 @@ function App() {
     <div className="flex items-center gap-x-2">
       <input
         type="checkbox"
-        defaultChecked={charAllowed}
+        checked={charAllowed}
         id="characterInput"
         className="w-4 h-4 accent-blue-600 rounded"
+        onChange={()=>{setAllowed((prev)=>!prev)}}
       />
       <label htmlFor="characterInput" className="text-white">Characters</label>
     </div>
